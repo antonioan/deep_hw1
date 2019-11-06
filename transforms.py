@@ -29,7 +29,7 @@ class InvertColors(object):
         """
         # TODO: Invert the colors of the input image.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        return torch.ones_like(x) - x
         # ========================
 
 
@@ -41,11 +41,7 @@ class FlipUpDown(object):
         """
         # TODO: Flip the input image so that up is down.
         # ====== YOUR CODE: ======
-        for i in range(0,np.floor(torch.Size(x)[1]/2)):
-            for j in range(0,np.floor(torch.Size(x)[2])):
-                x[0][i][j] = x[0][torch.Size(x)[1]-i-1][j]
-                x[1][i][j] = x[1][torch.Size(x)[1]-i-1][j]
-                x[2][i][j] = x[2][torch.Size(x)[1]-i-1][j]
+        return torch.flip(x, [1])
         # ========================
 
 
