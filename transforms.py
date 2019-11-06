@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 
 class TensorView(object):
@@ -40,7 +41,14 @@ class FlipUpDown(object):
         """
         # TODO: Flip the input image so that up is down.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+            for i in range(0,np.floor(torch.Size(x)[1]/2)):
+                for j in range(0,np.floor(torch.Size(x)[2])):
+                    x[0][i][j] = x[0][torch.Size(x)[1]-i-1][j]
+                    x[1][i][j] = x[1][torch.Size(x)[1]-i-1][j]
+                    x[2][i][j] = x[2][torch.Size(x)[1]-i-1][j]
+
+
         # ========================
 
 
