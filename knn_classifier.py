@@ -2,7 +2,6 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
-
 import cs236781.dataloader_utils as dataloader_utils
 from . import dataloaders
 
@@ -30,11 +29,19 @@ class KNNClassifier(object):
         #     y_train.
         #  2. Save the number of classes as n_classes.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        x_train_list = []
+        y_train_list = []
+        ds = dl_train.dataset
+        for i in range(0, len(ds)):
+            #x_train_list.append(np.array(ds[i][0]))
+            x_train_list.append(list(ds[i][0]))
+            y_train_list.append(ds[i][1])
+
+        n_classes = len(np.unique(np.array(y_train_list)))
         # ========================
 
-        self.x_train = x_train
-        self.y_train = y_train
+        self.x_train = torch.Tensor(x_train_list)
+        self.y_train = torch.Tensor(y_train_list)
         self.n_classes = n_classes
         return self
 
@@ -46,6 +53,7 @@ class KNNClassifier(object):
         """
 
         # Calculate distances between training and test samples
+
         dist_matrix = l2_dist(self.x_train, x_test)
 
         # TODO:
@@ -56,15 +64,16 @@ class KNNClassifier(object):
 
         n_test = x_test.shape[0]
         y_pred = torch.zeros(n_test, dtype=torch.int64)
+        y_pred_list = []
         for i in range(n_test):
             # TODO:
             #  - Find indices of k-nearest neighbors of test sample i
             #  - Set y_pred[i] to the most common class among them
             #  - Don't use an explicit loop.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            y_pred_list.append(np.argmax(np.bincount([self.y_train[i] for i in (np.argsort(dist_matrix[:, i])[:self.k])])))
             # ========================
-
+        y_pred = torch.as_tensor(y_pred_list, dtype=torch.int64)
         return y_pred
 
 
@@ -87,12 +96,18 @@ def l2_dist(x1: Tensor, x2: Tensor):
     #    Hint: Open the expression (a-b)^2. Use broadcasting semantics to
     #    combine the three terms efficiently.
 
-    dists = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
-    # ========================
+    print("size of x1: {x1.size()}%", x1.size())
+    print("size of x2: {x2.size()}%", x2.size())
+    u1 = torch.sum(torch.mul(x1, x1), 1)
+    u2 = torch.sum(x2 * x2, 1)
+    u1 = torch.reshape(u1, (u1.size()[0], 1))
+    u2 = torch.reshape(u2, (1, u2.size()[0]))
 
-    return dists
+    m = torch.mm(x1, torch.Tensor.t(x2))
+    return torch.sqrt(u1 - 2 * m + u2)
+
+    # ======== ================
 
 
 def accuracy(y: Tensor, y_pred: Tensor):
@@ -107,15 +122,17 @@ def accuracy(y: Tensor, y_pred: Tensor):
     assert y.dim() == 1
 
     # TODO: Calculate prediction accuracy. Don't use an explicit loop.
-    accuracy = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
-    # ========================
+    a = y - y_pred
+    b =torch.Tensor([int(i) for i in (a == 0) ])
 
-    return accuracy
+    print(a.size()[0])
+    return sum(b)/a.size()[0]
+    # ========================
 
 
 def find_best_k(ds_train: Dataset, k_choices, num_folds):
+    #######################DOESNT WORK####################
     """
     Use cross validation to find the best K for the kNN model.
 
@@ -140,7 +157,19 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         #  random split each iteration), or implement something else.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        model = KNNClassifier(k)
+        train, valid = dataloader_utils.create_train_validation_loaders(ds_train, 1/k)
+        model.train(train)
+        ds = valid.dataset
+
+        x_valid = []
+        y_valid = []
+        for j in range(0, len(ds)):
+            x_valid.append(np.array(ds[j][0]))
+            y_valid.append(ds[j][1])
+
+        accuracies.append(accuracy(model.predict(torch.Tensor(x_valid)), torch.Tensor(y_valid)))
+
         # ========================
 
     best_k_idx = np.argmax([np.mean(acc) for acc in accuracies])
