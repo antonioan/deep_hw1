@@ -67,8 +67,7 @@ class BiasTrick(object):
         #  Hint: See torch.cat().
 
         # ====== YOUR CODE: ======
-        y_size = x.size()
-        y_size()[-1] = 1
-        y = torch.ones(y_size)
-        torch.cat([x,y])
+        shape = (*x.size()[:-1], 1)
+        y = torch.ones(shape, dtype=x.dtype)
+        return torch.cat([y, x], dim=-1)
         # ========================
