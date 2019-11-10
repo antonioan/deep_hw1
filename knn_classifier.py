@@ -63,7 +63,7 @@ class KNNClassifier(object):
         #  label of it's nearest neighbors.
 
         n_test = x_test.shape[0]
-        y_pred = torch.zeros(n_test, dtype=torch.int64)
+        #y_pred = torch.zeros(n_test, dtype=torch.int64)
         y_pred_list = []
         for i in range(n_test):
             # TODO:
@@ -72,8 +72,9 @@ class KNNClassifier(object):
             #  - Don't use an explicit loop.
             # ====== YOUR CODE: ======
             y_pred_list.append(np.argmax(np.bincount([self.y_train[i] for i in (np.argsort(dist_matrix[:, i])[:self.k])])))
-            # ========================
         y_pred = torch.as_tensor(y_pred_list, dtype=torch.int64)
+        # ========================
+
         return y_pred
 
 
@@ -92,19 +93,17 @@ def l2_dist(x1: Tensor, x2: Tensor):
     #  Notes:
     #  - Use only basic pytorch tensor operations, no external code.
     #  - Solution must be a fully vectorized implementation, i.e. use NO
-    #    explicit loops (yes, list comprehensions are also explicit loops).
+    #    explicit loops (yes, list comprehensi0ons are also explicit loops).
     #    Hint: Open the expression (a-b)^2. Use broadcasting semantics to
     #    combine the three terms efficiently.
 
     # ====== YOUR CODE: ======
-    print("size of x1: {x1.size()}%", x1.size())
-    print("size of x2: {x2.size()}%", x2.size())
     u1 = torch.sum(torch.mul(x1, x1), 1)
-    u2 = torch.sum(x2 * x2, 1)
+    u2 = torch.sum(torch.mul(x2, x2), 1)
     u1 = torch.reshape(u1, (u1.size()[0], 1))
     u2 = torch.reshape(u2, (1, u2.size()[0]))
 
-    m = torch.mm(x1, torch.Tensor.t(x2))
+    m = torch.mm(x1, x2.t())
     return torch.sqrt(u1 - 2 * m + u2)
 
     # ======== ================
@@ -124,10 +123,9 @@ def accuracy(y: Tensor, y_pred: Tensor):
     # TODO: Calculate prediction accuracy. Don't use an explicit loop.
     # ====== YOUR CODE: ======
     a = y - y_pred
-    b =torch.Tensor([int(i) for i in (a == 0) ])
+    b = torch.Tensor([int(i) for i in (a == 0)])
 
-    print(a.size()[0])
-    return sum(b)/a.size()[0]
+    return torch.sum(b).item() / a.size()[0]
     # ========================
 
 
@@ -158,7 +156,7 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
 
         # ====== YOUR CODE: ======
         model = KNNClassifier(k)
-        train, valid = dataloader_utils.create_train_validation_loaders(ds_train, 1/k)
+        train, valid = dataloader_utils.create_train_validation_loaders(ds_train, 1/num_folds)
         model.train(train)
         ds = valid.dataset
 
