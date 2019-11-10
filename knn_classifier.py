@@ -156,7 +156,7 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
 
         # ====== YOUR CODE: ======
         model = KNNClassifier(k)
-        train, valid = dataloader_utils.create_train_validation_loaders(ds_train, 1/num_folds)
+        train, valid = dataloaders.create_train_validation_loaders(ds_train, 1/num_folds)
         model.train(train)
         ds = valid.dataset
 

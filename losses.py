@@ -52,7 +52,8 @@ class SVMHingeLoss(ClassifierLoss):
 
         loss = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        M = torch.zeros_like(x_scores.shape())
+
         # ========================
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx

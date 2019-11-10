@@ -2,7 +2,7 @@ import torch
 from torch import Tensor
 from torch.utils.data import DataLoader
 from collections import namedtuple
-
+from .transforms import BiasTrick
 from .losses import ClassifierLoss
 
 
@@ -24,7 +24,7 @@ class LinearClassifier(object):
 
         self.weights = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.weights = torch.normal(0, weight_std, (n_features + 1, n_classes))
         # ========================
 
     def predict(self, x: Tensor):
@@ -46,7 +46,9 @@ class LinearClassifier(object):
 
         y_pred, class_scores = None, None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        biased = BiasTrick()
+        class_scores = biased(x).mm(self.weights)
+        _, y_pred = torch.max(class_scores, 1)
         # ========================
 
         return y_pred, class_scores
@@ -69,7 +71,10 @@ class LinearClassifier(object):
 
         acc = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        assert y.size(0) > 0
+        a = y - y_pred
+        b = a.numel() - a.nonzero().size(0)
+        acc = float(b) / a.size(0)
         # ========================
 
         return acc * 100
