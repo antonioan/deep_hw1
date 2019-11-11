@@ -57,9 +57,9 @@ class SVMHingeLoss(ClassifierLoss):
         gathered = torch.gather(x_scores, 1, repeated_y)
         subbed = torch.sub(x_scores, gathered)
         delta_tensor = torch.Tensor([self.delta])
-        subbed += delta_tensor
-        subbed[subbed < 0] = 0
-        loss = subbed.sum() / x_scores.size(0)
+        M = subbed + delta_tensor
+        M[M < 0] = 0
+        loss = M.sum() / x_scores.size(0)
         loss -= self.delta
         # ========================
 
