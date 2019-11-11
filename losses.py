@@ -1,5 +1,6 @@
 import abc
 import torch
+from matplotlib import axis
 
 
 class ClassifierLoss(abc.ABC):
@@ -28,7 +29,7 @@ class SVMHingeLoss(ClassifierLoss):
         self.delta = delta
         self.grad_ctx = {}
 
-    def loss(self, x, y, x_scores, y_predicted):
+    def loss(self, x, y: torch.Tensor, x_scores: torch.Tensor, y_predicted):
         """
         Calculates the Hinge-loss for a batch of samples.
 
@@ -52,8 +53,14 @@ class SVMHingeLoss(ClassifierLoss):
 
         loss = None
         # ====== YOUR CODE: ======
-        M = torch.zeros_like(x_scores.shape())
-
+        repeated_y = y.reshape(y.size(0), 1).repeat_interleave(x_scores.size(1), dim=1)
+        gathered = torch.gather(x_scores, 1, repeated_y)
+        subbed = torch.sub(x_scores, gathered)
+        delta_tensor = torch.Tensor([self.delta])
+        subbed += delta_tensor
+        subbed[subbed < 0] = 0
+        loss = subbed.sum() / x_scores.size(0)
+        loss -= self.delta
         # ========================
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
