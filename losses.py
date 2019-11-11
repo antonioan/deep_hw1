@@ -1,7 +1,7 @@
 import abc
 import torch
 from matplotlib import axis
-
+from .transforms import BiasTrick
 
 class ClassifierLoss(abc.ABC):
     """
@@ -65,7 +65,9 @@ class SVMHingeLoss(ClassifierLoss):
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.grad_ctx['M'] = M
+        self.grad_ctx['x'] = x
+        self.grad_ctx['y'] = y
         # ========================
 
         return loss
@@ -83,7 +85,16 @@ class SVMHingeLoss(ClassifierLoss):
 
         grad = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        G = self.grad_ctx['M']
+        x = self.grad_ctx['x']
+        y = self.grad_ctx['y']
+        bias = BiasTrick()
+        x = bias(x)
+        G[G <= 0] = 0
+        G[G > 0] = 1
+        sums = torch.sum(G, dim=1) - torch.Tensor([1])
+        G[torch.arange(0, y.size(0)), y] = sums
+        grad = torch.mm(x.t(), G) / y.size(0)
         # ========================
 
         return grad
