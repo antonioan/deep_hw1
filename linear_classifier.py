@@ -106,7 +106,13 @@ class LinearClassifier(object):
             #     using the weight_decay parameter.
 
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            print('hi')
+            for batch in dl_train:
+                print(batch)
+                print(batch[0].size())
+                print(batch[1].size())
+                break
+            break
             # ========================
             print('.', end='')
 
@@ -140,7 +146,11 @@ def hyperparams():
     #  Manually tune the hyperparameters to get the training accuracy test
     #  to pass.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    #hp.weight_std = 0.
+    #print(hp.weight_std)
+    #hp.learn_rate = 0.
+    hp['weight_decay'] = 0.
+    print(hp['weight_decay'])
     # ========================
 
     return hp
