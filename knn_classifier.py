@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import unittest
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 import cs236781.dataloader_utils as dataloader_utils
@@ -153,20 +154,26 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         #  You can use your train/validation splitter from part 1 (note that
         #  then it won't be exactly k-fold CV since it will be a
         #  random split each iteration), or implement something else.
-
+        test = unittest.TestCase()
         # ====== YOUR CODE: ======
         model = KNNClassifier(k)
         train, valid = dataloaders.create_train_validation_loaders(ds_train, 1/num_folds)
         model.train(train)
         ds = valid.dataset
-
+        test.assertTrue(
+            len(ds_train) * (1 - 1 / num_folds) + 1 >= len(train.dataset) >= len(ds_train) * (1 - 1 / num_folds) - 1,
+            msg="size error")
         x_valid = []
         y_valid = []
+
         for j in range(0, len(ds)):
-            x_valid.append(np.array(ds[j][0]))
+            x_valid.append((ds[j][0]))
             y_valid.append(ds[j][1])
 
-        accuracies.append(accuracy(model.predict(torch.Tensor(x_valid)), torch.Tensor(y_valid)))
+        #x_valid = x_valid.float()
+        #y_valid = y_valid.float()
+
+        accuracies.append(accuracy(model.predict(torch.LongTensor(x_valid), torch.LongTensor(y_valid))))
 
         # ========================
 
