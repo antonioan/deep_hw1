@@ -71,13 +71,13 @@ class BiasTrickTransformer(BaseEstimator, TransformerMixin):
         """
         X = check_array(X, ensure_2d=True)
 
-        # TODO:
+        # DONE:
         #  Add bias term to X as the first feature.
         #  See np.hstack().
 
         xb = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        xb = np.hstack((np.ones((X.shape[0], 1)), X))
         # ========================
 
         return xb
@@ -140,10 +140,13 @@ def top_correlated_features(df: DataFrame, target_feature, n=5):
     # TODO: Calculate correlations with target and sort features by it
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    mu = {}
+    for feature_name, feature_data in df.iteritems():
+        mu[feature_name] = np.sum(feature_data) / len(feature_data.values)
     # ========================
 
-    return top_n_features, top_n_corr
+    return None, None
+    #return top_n_features, top_n_corr
 
 
 def mse_score(y: np.ndarray, y_pred: np.ndarray):
@@ -156,7 +159,8 @@ def mse_score(y: np.ndarray, y_pred: np.ndarray):
 
     # TODO: Implement MSE using numpy.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    sum_squares = np.sum(np.square(np.subtract(y, y_pred)))
+    mse = (sum_squares / len(y))  # / 2
     # ========================
     return mse
 
@@ -171,7 +175,12 @@ def r2_score(y: np.ndarray, y_pred: np.ndarray):
 
     # TODO: Implement R^2 using numpy.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    e = np.subtract(y, y_pred)
+    y_bar = np.sum(y) / len(y)
+    y_bar_vec = np.full((len(y), ), y_bar)
+    numerator = np.sum(np.square(e))
+    denominator = np.sum(np.square(np.subtract(y, y_bar_vec)))
+    r2 = 1 - numerator / denominator
     # ========================
     return r2
 
