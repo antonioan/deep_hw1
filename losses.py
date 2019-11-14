@@ -90,8 +90,8 @@ class SVMHingeLoss(ClassifierLoss):
         G = self.grad_ctx['M']
         x = self.grad_ctx['x']
         y = self.grad_ctx['y']
-        bias = BiasTrick()
-        x = bias(x)
+        #bias = BiasTrick()
+        #x = bias(x)
         G[G <= 0] = 0
         G[G > 0] = 1
         sums = torch.sum(G, dim=1) - torch.Tensor([1])

@@ -2,9 +2,7 @@ import torch
 from torch import Tensor
 from torch.utils.data import DataLoader
 from collections import namedtuple
-from .transforms import BiasTrick
 from .losses import ClassifierLoss
-
 
 class LinearClassifier(object):
 
@@ -24,7 +22,7 @@ class LinearClassifier(object):
 
         self.weights = None
         # ====== YOUR CODE: ======
-        self.weights = torch.normal(0, weight_std, (n_features + 1, n_classes))
+        self.weights = torch.normal(0, weight_std, (n_features, n_classes))
         # ========================
 
     def predict(self, x: Tensor):
@@ -46,8 +44,9 @@ class LinearClassifier(object):
 
         y_pred, class_scores = None, None
         # ====== YOUR CODE: ======
-        biased = BiasTrick()
-        class_scores = biased(x).mm(self.weights)
+        #biased = BiasTrick()
+        #x = biased(x)
+        class_scores = x.mm(self.weights)
         _, y_pred = torch.max(class_scores, 1)
         # ========================
 
@@ -106,18 +105,22 @@ class LinearClassifier(object):
             #     using the weight_decay parameter.
 
             # ====== YOUR CODE: ======
+            train_res.accuracy.append(0.)
+            train_res.loss.append(0.)
             for batch in dl_train:  # batch is a tuple of inputs and true outputs
                 y_pred, class_scores = self.predict(batch[0])
-                train_res.accuracy[epoch_idx] += self.evaluate_accuracy(y_pred, batch[1])
+                train_res.accuracy[epoch_idx] += self.evaluate_accuracy(batch[1], y_pred)
                 train_res.loss[epoch_idx] += loss_fn(batch[0], batch[1], class_scores, y_pred)
                 self.weights = self.weights * (1 - weight_decay) - learn_rate * loss_fn.grad()
-            train_res.loss[epoch_idx] /= dl_train.batch_size
+            train_res.loss[epoch_idx] /= len(dl_train)
 
+            valid_res.accuracy.append(0.)
+            valid_res.loss.append(0.)
             for batch in dl_valid:
                 y_pred, class_scores = self.predict(batch[0])
-                valid_res.accuracy[epoch_idx] += self.evaluate_accuracy(y_pred, batch[1])
+                valid_res.accuracy[epoch_idx] += self.evaluate_accuracy(batch[1], y_pred)
                 valid_res.loss[epoch_idx] += loss_fn(batch[0], batch[1], class_scores, y_pred)
-            valid_res.loss[epoch_idx] /= dl_valid.batch_size
+            valid_res.loss[epoch_idx] /= len(dl_valid)
             # ========================
             print('.', end='')
 
@@ -138,7 +141,7 @@ class LinearClassifier(object):
         #  The output shape should be (n_classes, C, H, W).
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        w_images = self.weights[has_bias:, :].reshape((self.n_classes, *img_shape))
         # ========================
 
         return w_images
@@ -152,7 +155,7 @@ def hyperparams():
     #  to pass.
     # ====== YOUR CODE: ======
     hp['weight_std'] = 0.1
-    hp['learn_rate'] = 0.01
+    hp['learn_rate'] = 0.05
     hp['weight_decay'] = 0.001
     # ========================
 
