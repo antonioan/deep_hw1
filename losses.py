@@ -57,13 +57,15 @@ class SVMHingeLoss(ClassifierLoss):
         gathered = torch.gather(x_scores, 1, repeated_y)
         subbed = torch.sub(x_scores, gathered)
         delta_tensor = torch.Tensor([self.delta])
+        # print('M=', subbed)
         M = subbed + delta_tensor
+        # print('M=', M)
         M[M < 0] = 0
+        # print('M=', M)
         loss = M.sum() / x_scores.size(0)
         loss -= self.delta
         # ========================
 
-        # TODO: Save what you need for gradient calculation in self.grad_ctx
         # ====== YOUR CODE: ======
         self.grad_ctx['M'] = M
         self.grad_ctx['x'] = x
@@ -93,7 +95,7 @@ class SVMHingeLoss(ClassifierLoss):
         G[G <= 0] = 0
         G[G > 0] = 1
         sums = torch.sum(G, dim=1) - torch.Tensor([1])
-        G[torch.arange(0, y.size(0)), y] = sums
+        G[torch.arange(0, y.size(0)), y] = -sums
         grad = torch.mm(x.t(), G) / y.size(0)
         # ========================
 
