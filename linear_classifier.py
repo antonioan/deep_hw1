@@ -106,13 +106,18 @@ class LinearClassifier(object):
             #     using the weight_decay parameter.
 
             # ====== YOUR CODE: ======
-            print('hi')
-            for batch in dl_train:
-                print(batch)
-                print(batch[0].size())
-                print(batch[1].size())
-                break
-            break
+            for batch in dl_train:  # batch is a tuple of inputs and true outputs
+                y_pred, class_scores = self.predict(batch[0])
+                train_res.accuracy[epoch_idx] += self.evaluate_accuracy(y_pred, batch[1])
+                train_res.loss[epoch_idx] += loss_fn(batch[0], batch[1], class_scores, y_pred)
+                self.weights = self.weights * (1 - weight_decay) - learn_rate * loss_fn.grad()
+            train_res.loss[epoch_idx] /= dl_train.batch_size
+
+            for batch in dl_valid:
+                y_pred, class_scores = self.predict(batch[0])
+                valid_res.accuracy[epoch_idx] += self.evaluate_accuracy(y_pred, batch[1])
+                valid_res.loss[epoch_idx] += loss_fn(batch[0], batch[1], class_scores, y_pred)
+            valid_res.loss[epoch_idx] /= dl_valid.batch_size
             # ========================
             print('.', end='')
 
@@ -146,11 +151,9 @@ def hyperparams():
     #  Manually tune the hyperparameters to get the training accuracy test
     #  to pass.
     # ====== YOUR CODE: ======
-    #hp.weight_std = 0.
-    #print(hp.weight_std)
-    #hp.learn_rate = 0.
-    hp['weight_decay'] = 0.
-    print(hp['weight_decay'])
+    hp['weight_std'] = 0.1
+    hp['learn_rate'] = 0.01
+    hp['weight_decay'] = 0.001
     # ========================
 
     return hp
