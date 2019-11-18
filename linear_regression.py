@@ -19,8 +19,7 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
         """
         Predict the class of a batch of samples based on the current weights.
         :param X: A tensor of shape (N,n_features_) where N is the batch size.
-        :return:
-            y_pred: np.ndarray of shape (N,) where each entry is the predicted
+        :return: y_pred: np.ndarray of shape (N,) where each entry is the predicted
                 value of the corresponding sample.
         """
         X = check_array(X)
@@ -30,7 +29,7 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         y_pred = None
         # ====== YOUR CODE: ======
-        y_pred = np.max(self.weights_ @ X, axis=1)
+        y_pred = X @ self.weights_
         # ========================
 
         return y_pred
@@ -49,14 +48,9 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         w_opt = None
         # ====== YOUR CODE: ======
-        y.reshape((len(y), 1))
-        print(y.T.shape)
-        print(X.shape)
-        a = y.T @ X
-        m = a @ np.linalg.inv((np.eye(X.shape)) + X @ X.T)
-        w_opt = np.dot(m, len(y)/2)
+        inv = np.linalg.inv(X.T @ X + len(y) * self.reg_lambda * np.eye(X.shape[1]))
+        w_opt = X.T @ y @ inv
         # ========================
-
         self.weights_ = w_opt
         return self
 
