@@ -130,7 +130,7 @@ class LinearClassifier(object):
     def weights_as_images(self, img_shape, has_bias=True):
         """
         Create tensor images from the weights, for visualization.
-        :param img_shape: Shape of each tensor image to create, i.e. (C,H,W)z.
+        :param img_shape: Shape of each tensor image to create, i.e. (C,H,W).
         :param has_bias: Whether the weights include a bias component
             (assumed to be the first feature).
         :return: Tensor of shape (n_classes, C, H, W).
