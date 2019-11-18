@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import unittest
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 import cs236781.dataloader_utils as dataloader_utils
@@ -12,6 +13,7 @@ class KNNClassifier(object):
         self.x_train = None
         self.y_train = None
         self.n_classes = None
+        self.test = unittest.TestCase()
 
     def train(self, dl_train: DataLoader):
         """
@@ -33,7 +35,6 @@ class KNNClassifier(object):
         y_train_list = []
         ds = dl_train.dataset
         for i in range(0, len(ds)):
-            #x_train_list.append(np.array(ds[i][0]))
             x_train_list.append(list(ds[i][0]))
             y_train_list.append(ds[i][1])
 
@@ -53,7 +54,6 @@ class KNNClassifier(object):
         """
 
         # Calculate distances between training and test samples
-
         dist_matrix = l2_dist(self.x_train, x_test)
 
         # TODO:
@@ -63,7 +63,6 @@ class KNNClassifier(object):
         #  label of it's nearest neighbors.
 
         n_test = x_test.shape[0]
-        #y_pred = torch.zeros(n_test, dtype=torch.int64)
         y_pred_list = []
         for i in range(n_test):
             # TODO:
@@ -102,7 +101,6 @@ def l2_dist(x1: Tensor, x2: Tensor):
     u2 = torch.sum(torch.mul(x2, x2), 1)
     u1 = torch.reshape(u1, (u1.size()[0], 1))
     u2 = torch.reshape(u2, (1, u2.size()[0]))
-
     m = torch.mm(x1, x2.t())
     return torch.sqrt(u1 - 2 * m + u2)
 
@@ -124,13 +122,11 @@ def accuracy(y: Tensor, y_pred: Tensor):
     # ====== YOUR CODE: ======
     a = y - y_pred
     b = torch.Tensor([int(i) for i in (a == 0)])
-
     return torch.sum(b).item() / a.size()[0]
     # ========================
 
 
 def find_best_k(ds_train: Dataset, k_choices, num_folds):
-    #######################DOESNT WORK####################
     """
     Use cross validation to find the best K for the kNN model.
 
@@ -145,7 +141,6 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
     accuracies = []
 
     for i, k in enumerate(k_choices):
-        model = KNNClassifier(k)
 
         # TODO:
         #  Train model num_folds times with different train/val data.
@@ -158,17 +153,13 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         model = KNNClassifier(k)
         train, valid = dataloaders.create_train_validation_loaders(ds_train, 1 / num_folds)
         model.train(train)
-        ds = valid.dataset
 
-        x_valid = []
-        y_valid = []
-        for j in range(0, len(ds)):
-            x_valid.append(np.array(ds[j][0]))
-            y_valid.append(ds[j][1])
-
-        accuracies.append(accuracy(model.predict(torch.Tensor(x_valid)), torch.Tensor(y_valid)))
+        acc, size = 0, 0
+        for idx, (x, y) in enumerate(valid):
+            acc += accuracy(y, model.predict(x))*x.size(0)
+            size += x.size(0)
+        accuracies.append(acc/size)
         # ========================
-
     best_k_idx = np.argmax([np.mean(acc) for acc in accuracies])
     best_k = k_choices[best_k_idx]
 

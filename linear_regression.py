@@ -30,7 +30,7 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         y_pred = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        y_pred = np.max(self.weights_ @ X, axis=1)
         # ========================
 
         return y_pred
@@ -49,7 +49,12 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         w_opt = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        y.reshape((len(y), 1))
+        print(y.shape)
+        print((X.T).shape)
+        a = y @ X.T
+        m = a @ np.linalg.inv((np.eye(X.shape)) + X @ X.T)
+        w_opt = np.dot(m, len(y)/2)
         # ========================
 
         self.weights_ = w_opt
@@ -140,13 +145,28 @@ def top_correlated_features(df: DataFrame, target_feature, n=5):
     # TODO: Calculate correlations with target and sort features by it
 
     # ====== YOUR CODE: ======
-    mu = {}
-    for feature_name, feature_data in df.iteritems():
-        mu[feature_name] = np.sum(feature_data) / len(feature_data.values)
+    target_mean = np.mean(df[target_feature])
+    target_var = np.sqrt(np.sum((df[target_feature] - target_mean * np.ones_like(df[target_feature])) ** 2))
+    # target_vec = (df[target_feature] - target_mean * np.ones_like(target_mean)).T
+    target_vec = (df[target_feature] - target_mean * np.ones_like(target_mean))
+    pearson = []
+
+    for feature_name, feature in df.iteritems():
+        if feature_name == target_feature:
+            continue
+        feature_mean = np.mean(feature)
+        feature_vec = feature - feature_mean * np.ones_like(feature)
+        feature_var = np.sqrt(np.sum((feature - feature_mean * np.ones_like(feature)) ** 2))
+        covar = np.matmul(feature_vec.T, target_vec)
+        pearson.append([np.abs(covar / (target_var * feature_var)), feature_name, covar / (target_var * feature_var)])
+
+    pearson.sort(key=lambda x: float(x[0]), reverse=True)
+    pearson = pearson[:n]
+    top_n_features = [item[1] for item in pearson]
+    top_n_corr = [item[2] for item in pearson]
     # ========================
 
-    return None, None
-    #return top_n_features, top_n_corr
+    return top_n_features, top_n_corr
 
 
 def mse_score(y: np.ndarray, y_pred: np.ndarray):

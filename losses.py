@@ -85,6 +85,7 @@ class SVMHingeLoss(ClassifierLoss):
         #  Same notes as above. Hint: Use the matrix M from above, based on
         #  it create a matrix G such that X^T * G is the gradient.
 
+
         grad = None
         # ====== YOUR CODE: ======
         G = self.grad_ctx['M']
