@@ -31,7 +31,7 @@ def create_train_validation_loaders(dataset: Dataset, validation_ratio,
     #  Hint: you can specify a Sampler class for the `DataLoader` instance
     #  you create.
     # ====== YOUR CODE: ======
-    torch.manual_seed(26)
+    #torch.manual_seed(26)
     indices = torch.randperm(len(dataset))
     val_indices = indices[:int(len(dataset)*validation_ratio)]
     train_indices = indices[int(len(dataset)*validation_ratio):]

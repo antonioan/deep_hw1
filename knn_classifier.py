@@ -70,7 +70,11 @@ class KNNClassifier(object):
             #  - Set y_pred[i] to the most common class among them
             #  - Don't use an explicit loop.
             # ====== YOUR CODE: ======
-            y_pred_list.append(np.argmax(np.bincount([self.y_train[i] for i in (np.argsort(dist_matrix[:, i])[:self.k])])))
+            best_k = sorted(range(n_test), key=lambda x: dist_matrix[x, i])[:self.k]
+            best_k_train = self.y_train[best_k]
+            bin_count = np.bincount(best_k_train)
+            my_argmax = np.argmax(bin_count)
+            y_pred_list.append(my_argmax)
         y_pred = torch.as_tensor(y_pred_list, dtype=torch.int64)
         # ========================
 
@@ -151,16 +155,18 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
 
         # ====== YOUR CODE: ======
         model = KNNClassifier(k)
-        train, valid = dataloaders.create_train_validation_loaders(ds_train, 1 / num_folds)
-        model.train(train)
-
-        acc, size = 0, 0
-        for idx, (x, y) in enumerate(valid):
-            acc += accuracy(y, model.predict(x))*x.size(0)
-            size += x.size(0)
-        accuracies.append(acc/size)
+        local_acc = []
+        for j in range(num_folds):
+            train, valid = dataloaders.create_train_validation_loaders(ds_train, (1.0 / num_folds))
+            model.train(train)
+            acc, size = 0, 0
+            for idx, (x, y) in enumerate(valid):
+                acc += accuracy(y, model.predict(x))*x.size(0)
+                size += x.size(0)
+            local_acc.append(acc / size)
+        accuracies.append(local_acc)
         # ========================
     best_k_idx = np.argmax([np.mean(acc) for acc in accuracies])
     best_k = k_choices[best_k_idx]
-
+    print('best_k', best_k)
     return best_k, accuracies

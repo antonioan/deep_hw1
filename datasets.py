@@ -36,7 +36,7 @@ class RandomImageDataset(Dataset):
         #  the random state outside this method.
 
         # ====== YOUR CODE: ======
-        np.random.seed(index)
+        #np.random.seed(index)
         image = torch.from_numpy(np.random.rand(self.image_dim[0],self.image_dim[1],self.image_dim[2]))
         label = np.random.randint(0,self.num_classes)
         return image, label
