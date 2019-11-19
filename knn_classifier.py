@@ -31,18 +31,12 @@ class KNNClassifier(object):
         #     y_train.
         #  2. Save the number of classes as n_classes.
         # ====== YOUR CODE: ======
-        x_train_list = []
-        y_train_list = []
-        ds = dl_train.dataset
-        for i in range(0, len(ds)):
-            x_train_list.append(list(ds[i][0]))
-            y_train_list.append(ds[i][1])
-
-        n_classes = len(np.unique(np.array(y_train_list)))
+        x_train, y_train = dataloader_utils.flatten(dl_train)
+        n_classes = len(np.unique(y_train))
         # ========================
 
-        self.x_train = torch.Tensor(x_train_list)
-        self.y_train = torch.Tensor(y_train_list)
+        self.x_train = x_train
+        self.y_train = y_train
         self.n_classes = n_classes
         return self
 
@@ -119,9 +113,7 @@ def accuracy(y: Tensor, y_pred: Tensor):
 
     # TODO: Calculate prediction accuracy. Don't use an explicit loop.
     # ====== YOUR CODE: ======
-    a = y - y_pred
-    b = torch.Tensor([int(i) for i in (a == 0)])
-    return torch.sum(b).item() / a.size()[0]
+    return 1 - (torch.nonzero(y - y_pred).size(0) / y.size(0))
     # ========================
 
 
@@ -156,8 +148,8 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
             model.train(train)
             acc, size = 0, 0
             for idx, (x, y) in enumerate(valid):
-                acc += accuracy(y, model.predict(x))*x.size(0)
-                size += x.size(0)
+                acc += accuracy(y, model.predict(x)) * y.size(0)
+                size += y.size(0)
             local_acc.append(acc / size)
         accuracies.append(local_acc)
         # ========================
