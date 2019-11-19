@@ -63,21 +63,16 @@ class KNNClassifier(object):
         #  label of it's nearest neighbors.
 
         n_test = x_test.shape[0]
-        y_pred_list = []
+        y_pred = torch.zeros(n_test, dtype=torch.int64)
         for i in range(n_test):
             # TODO:
             #  - Find indices of k-nearest neighbors of test sample i
             #  - Set y_pred[i] to the most common class among them
             #  - Don't use an explicit loop.
             # ====== YOUR CODE: ======
-            best_k = sorted(range(n_test), key=lambda x: dist_matrix[x, i])[:self.k]
-            best_k_train = self.y_train[best_k]
-            bin_count = np.bincount(best_k_train)
-            my_argmax = np.argmax(bin_count)
-            y_pred_list.append(my_argmax)
-        y_pred = torch.as_tensor(y_pred_list, dtype=torch.int64)
-        # ========================
-
+            _, indices = torch.topk(dist_matrix[:, i], largest=False, k=self.k)
+            y_pred[i], _ = torch.mode(self.y_train[indices])
+             # ========================
         return y_pred
 
 
@@ -168,5 +163,5 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         # ========================
     best_k_idx = np.argmax([np.mean(acc) for acc in accuracies])
     best_k = k_choices[best_k_idx]
-    print('best_k', best_k)
+
     return best_k, accuracies

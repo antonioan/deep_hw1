@@ -14,6 +14,7 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
     def __init__(self, reg_lambda=0.1):
         self.reg_lambda = reg_lambda
+        #self.degree = degree
 
     def predict(self, X):
         """
@@ -48,8 +49,10 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         w_opt = None
         # ====== YOUR CODE: ======
-        inv = np.linalg.inv(X.T @ X + len(y) * self.reg_lambda * np.eye(X.shape[1]))
-        w_opt = X.T @ y @ inv
+        I = np.eye(X.shape[1])
+        I[0][0] = 0
+        inv = np.linalg.inv(X.T @ X + len(y) * self.reg_lambda * I)
+        w_opt = inv @ X.T @ y
         # ========================
         self.weights_ = w_opt
         return self
@@ -93,7 +96,6 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
         # TODO: Your custom initialization, if needed
         # Add any hyperparameters you need and save them as above
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
         # ========================
 
     def fit(self, X, y=None):
@@ -115,7 +117,8 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
 
         X_transformed = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        features = PolynomialFeatures(self.degree)
+        X_transformed = features.fit_transform(X)
         # ========================
 
         return X_transformed
@@ -191,7 +194,7 @@ def r2_score(y: np.ndarray, y_pred: np.ndarray):
     # ====== YOUR CODE: ======
     e = np.subtract(y, y_pred)
     y_bar = np.sum(y) / len(y)
-    y_bar_vec = np.full((len(y), ), y_bar)
+    y_bar_vec = np.full((len(y),), y_bar)
     numerator = np.sum(np.square(e))
     denominator = np.sum(np.square(np.subtract(y, y_bar_vec)))
     r2 = 1 - numerator / denominator
@@ -226,7 +229,13 @@ def cv_best_hyperparams(model: BaseEstimator, X, y, k_folds,
     #  - You can use MSE or R^2 as a score.
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    model = sklearn.model_selection.GridSearchCV(estimator=model, param_grid={
+                                                'linearregressor__reg_lambda': lambda_range,
+                                                'bostonfeaturestransformer__degree': degree_range},
+                                                scoring=sklearn.metrics.make_scorer(mse_score, greater_is_better=False),
+                                                cv=k_folds)
+    model.fit(X, y)
+    best_params = model.best_params_
     # ========================
 
     return best_params
